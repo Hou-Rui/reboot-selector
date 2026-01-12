@@ -1,0 +1,5 @@
+[project]
+name = "reboot-selector"
+
+[tool.pyside6-project]
+files = ["main.py", "backend.py", "main.qml"]

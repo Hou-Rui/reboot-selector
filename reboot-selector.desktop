@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Reboot Selector
+GenericName=Reboot Selector
+Comment=Select which OS to reboot into
+Keywords=reboot-selector systemd-boot
+Categories=Utility
+Exec=reboot-selector %u
+Icon=un-reboot
+StartupWMClass=reboot-selector
+Terminal=false
