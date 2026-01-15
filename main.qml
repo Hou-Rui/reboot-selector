@@ -10,22 +10,13 @@ import Backend
 
 Kirigami.ApplicationWindow {
     id: root
-    width: 520
+    width: 450
     height: 420
     visible: true
 
     BootModel {
         id: bootModel
-        onErrorOccurred: message => {
-            banner.type = Kirigami.MessageType.Error;
-            banner.text = message;
-            banner.visible = true;
-        }
-        onSuccessOccurred: message => {
-            banner.type = Kirigami.MessageType.Information;
-            banner.text = message;
-            banner.visible = true;
-        }
+        onMessageChanged: banner.visible = !!message.type
     }
 
     pageStack.initialPage: FormCard.FormCardPage {
@@ -36,13 +27,30 @@ Kirigami.ApplicationWindow {
                 icon.name: "reload"
                 text: qsTr("Reload")
                 onTriggered: bootModel.reload()
+            },
+            Kirigami.Action {
+                icon.name: "system-reboot"
+                text: qsTr("Reboot Now")
+                onTriggered: bootModel.rebootNow()
             }
         ]
 
         header: Kirigami.InlineMessage {
             id: banner
             position: Kirigami.InlineMessage.Position.Header
-            showCloseButton: true
+            showCloseButton: bootModel.message.type !== "error"
+            type: {
+                switch (bootModel.message.type) {
+                case "error":
+                    return Kirigami.MessageType.Error;
+                case "positive":
+                    return Kirigami.MessageType.Positive;
+                default:
+                    return Kirigami.MessageType.Information;
+                }
+            }
+            text: bootModel.message.text
+            visible: !!bootModel.message.type
         }
 
         FormCard.FormHeader {
@@ -51,6 +59,7 @@ Kirigami.ApplicationWindow {
 
         FormCard.FormCard {
             Repeater {
+                id: entriesRepeater
                 model: bootModel.entries
 
                 FormCard.FormButtonDelegate {
@@ -75,6 +84,11 @@ Kirigami.ApplicationWindow {
 
                     onClicked: bootModel.setOneShot(modelData.id)
                 }
+            }
+
+            FormCard.FormPlaceholderMessageDelegate {
+                text: qsTr("No boot entries detected")
+                visible: entriesRepeater.count === 0
             }
         }
     }
