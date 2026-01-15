@@ -83,8 +83,8 @@ class BootModel(QObject):
     def setOneShot(self, entry_id: str):
         try:
             self._run(["bootctl", "set-oneshot", entry_id], root=True)
-            self._set_message("positive", self.tr("Next boot entry updated."))
             self.reload()
+            self._set_message("positive", self.tr("Next boot entry updated."))
         except RuntimeError as err:
             self._set_message("error", str(err))
 
