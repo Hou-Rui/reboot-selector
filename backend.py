@@ -18,12 +18,12 @@ class BootModel(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._entries = []
-        self._message = { 'type': '', 'text': '' }
+        self._message = {"type": "", "text": ""}
         self.reload()
 
     # ---------- helpers ----------
     def _set_message(self, type: str, text: str):
-        self._message = { 'type': type, 'text': text }
+        self._message = {"type": type, "text": text}
         self.messageChanged.emit()
 
     def _run(self, args: list[str], root: bool = False) -> str:
@@ -48,7 +48,7 @@ class BootModel(QObject):
     @Property("QVariant", notify=entriesChanged)  # type: ignore
     def defaultEntry(self):
         for entry in self._entries:
-            if entry['isDefault']:
+            if entry["isDefault"]:
                 return entry
         return None
 
@@ -60,7 +60,7 @@ class BootModel(QObject):
 
     @Slot()
     def reload(self):
-        self._set_message('', '')
+        self._set_message("", "")
         self._entries = []
         try:
             result = self._run(["bootctl", "list", "--json=short"])
@@ -72,24 +72,25 @@ class BootModel(QObject):
                     "isSelected": bool(e.get("isSelected")),
                     "type": e.get("type"),
                 }
-                for e in json.loads(result) if "id" in e
+                for e in json.loads(result)
+                if "id" in e
             ]
             self.entriesChanged.emit()
         except (json.JSONDecodeError, RuntimeError) as err:
-            self._set_message('error', str(err))
+            self._set_message("error", str(err))
 
     @Slot(str)
     def setOneShot(self, entry_id: str):
         try:
             self._run(["bootctl", "set-oneshot", entry_id], root=True)
-            self._set_message('positive', self.tr('Next boot entry updated.'))
+            self._set_message("positive", self.tr("Next boot entry updated."))
             self.reload()
         except RuntimeError as err:
-            self._set_message('error', str(err))
-            
+            self._set_message("error", str(err))
+
     @Slot()
     def rebootNow(self):
         try:
             self._run(["systemctl", "reboot"])
         except RuntimeError as err:
-            self._set_message('error', str(err))
+            self._set_message("error", str(err))
