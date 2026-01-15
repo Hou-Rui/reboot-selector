@@ -29,7 +29,7 @@ Kirigami.ApplicationWindow {
                 onTriggered: bootModel.reload()
             },
             Kirigami.Action {
-                icon.name: "system-reboot"
+                icon.name: "system-reboot-update"
                 text: qsTr("Reboot Now")
                 onTriggered: bootModel.rebootNow()
             }
