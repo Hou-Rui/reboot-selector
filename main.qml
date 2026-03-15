@@ -1,17 +1,16 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.kde.kirigami as Kirigami
-import org.kde.kirigamiaddons.formcard as FormCard
-
 import Backend
 
 Kirigami.ApplicationWindow {
     id: root
-    width: 450
-    height: 420
+    width: 580
+    height: 520
     visible: true
 
     BootModel {
@@ -19,7 +18,7 @@ Kirigami.ApplicationWindow {
         onMessageChanged: banner.visible = !!message.type
     }
 
-    pageStack.initialPage: FormCard.FormCardPage {
+    pageStack.initialPage: Kirigami.ScrollablePage {
         title: qsTr("Boot Entries")
 
         actions: [
@@ -53,43 +52,71 @@ Kirigami.ApplicationWindow {
             visible: !!bootModel.message.type
         }
 
-        FormCard.FormHeader {
-            title: qsTr("Select next reboot OS: ")
-        }
+        Kirigami.CardsListView {
+            model: bootModel.entries
 
-        FormCard.FormCard {
-            Repeater {
-                id: entriesRepeater
-                model: bootModel.entries
-
-                FormCard.FormButtonDelegate {
-                    required property var modelData
-                    text: modelData.title
-                    description: {
-                        let tags = [];
-                        if (modelData.isSelected)
-                            tags.push(qsTr("Default OS"));
-                        if (modelData.isDefault)
-                            tags.push(qsTr("Next Reboot OS"));
-                        return tags.join(", ");
+            delegate: Kirigami.AbstractCard {
+                id: card
+                required property var modelData
+                headerOrientation: Qt.Horizontal
+                
+                contentItem: Item {
+                    implicitWidth: delegateLayout.implicitWidth
+                    implicitHeight: delegateLayout.implicitHeight
+            
+                    RowLayout {
+                        id: delegateLayout
+                        anchors {
+                            left: parent.left
+                            top: parent.top
+                            right: parent.right
+                        }
+                        
+                        Kirigami.Icon {
+                            source: {
+                                if (card.modelData.id.includes("windows"))
+                                    return "windows";
+                                if (card.modelData.id.includes("linux"))
+                                    return "preferences-system-linux";
+                                return "preferences-system-disks";
+                            }
+                        }
+                        
+                        Label {
+                            Layout.fillWidth: true
+                            text: card.modelData.title
+                            wrapMode: Text.WordWrap
+                        }
+                        
+                        EntryChip {
+                            visible: card.modelData.isSelected
+                            text: qsTr("Default")
+                        }
+                        
+                        EntryChip {
+                            visible: card.modelData.isDefault
+                            text: qsTr("Next Boot")
+                        }
+                        
+                        ToolSeparator {
+                            
+                        }
+                        
+                        Button {
+                            icon.name: "object-select-symbolic"
+                            text: qsTr("Select Next Boot")
+                            enabled: !card.modelData.isDefault
+                            onClicked: bootModel.setOneShot(card.modelData.id)
+                        }
                     }
-
-                    icon.name: {
-                        if (modelData.id.includes("windows"))
-                            return "windows";
-                        if (modelData.id.includes("linux"))
-                            return "preferences-system-linux";
-                        return "preferences-system-disks";
-                    }
-
-                    onClicked: bootModel.setOneShot(modelData.id)
                 }
             }
-
-            FormCard.FormPlaceholderMessageDelegate {
-                text: qsTr("No boot entries detected")
-                visible: entriesRepeater.count === 0
-            }
         }
+    }
+    
+    component EntryChip: Kirigami.Chip {
+        closable: false
+        interactive: false
+        font.bold: true
     }
 }
