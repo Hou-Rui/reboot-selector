@@ -91,6 +91,6 @@ class BootModel(QObject):
     @Slot()
     def rebootNow(self):
         try:
-            self._run(["systemctl", "reboot"])
+            self._run(["qdbus6", "org.kde.LogoutPrompt", "/LogoutPrompt", "promptReboot"])
         except RuntimeError as err:
             self._set_message("error", str(err))
